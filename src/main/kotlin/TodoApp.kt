@@ -12,6 +12,9 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -27,42 +30,61 @@ data class Todo(
     val createdAt: LocalDateTime = Clock.System.now().toLocalDateTime(TimeZone.UTC)
 )
 
-@Composable
-fun TodoApp(todoRepository: TodoRepository) {
-    var isLoading by remember { mutableStateOf(true) }
-    var todos by remember { mutableStateOf(listOf<Todo>()) }
+class TodoAppViewModel(
+    private val todoRepository: TodoRepository
+) : ViewModel() {
+    private var todos by mutableStateOf(listOf<Todo>())
 
-    val addNewTodo: (Todo) -> Unit = { newTodo -> todos = todos + newTodo }
-    val toggleTodoCompleted: (String) -> Unit = { todoId ->
-        todos = todos.map { todo ->
-            if (todo.id == todoId) todo.copy(isCompleted = !todo.isCompleted)
-            else todo
+    init {
+        load()
+    }
+
+    private fun load() {
+        viewModelScope.launch {
+            todos = todoRepository.load()
         }
     }
-    val deleteTodo: (String) -> Unit = { todoId ->
-        todos = todos.filterNot { todo -> todo.id == todoId }
-    }
 
-    LaunchedEffect(Unit) {
-        todos = todoRepository.load()
-        isLoading = false
-    }
-
-    LaunchedEffect(todos) {
-        if (!isLoading) {
+    private fun sync() {
+        viewModelScope.launch {
             todoRepository.save(todos)
         }
     }
 
+    fun todos(): List<Todo> {
+        return todos.asReversed()
+    }
+
+    fun addNewTodo(newTodo: Todo) {
+        todos = todos + newTodo
+        sync()
+    }
+
+    fun toggleTodoCompleted(todoId: String) {
+        todos = todos.map { todo ->
+            if (todo.id == todoId) todo.copy(isCompleted = !todo.isCompleted)
+            else todo
+        }
+        sync()
+    }
+
+    fun deleteTodo(todoId: String) {
+        todos = todos.filterNot { todo -> todo.id == todoId }
+        sync()
+    }
+}
+
+@Composable
+fun TodoApp(vm: TodoAppViewModel) {
     Column(
         modifier = Modifier.fillMaxSize().padding(10.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        TodoInput(onNewTodoAdded = addNewTodo)
+        TodoInput(onNewTodoAdded = vm::addNewTodo)
         TodoList(
-            todos,
-            onTodoCompletedToggled = toggleTodoCompleted,
-            onTodoDeleted = deleteTodo
+            vm.todos(),
+            onTodoCompletedToggled = vm::toggleTodoCompleted,
+            onTodoDeleted = vm::deleteTodo
         )
     }
 }
@@ -114,7 +136,7 @@ fun TodoList(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        items(todos.reversed(), key = Todo::id) { todo ->
+        items(todos, key = Todo::id) { todo ->
             TodoCard(todo, onTodoCompletedToggled, onTodoDeleted)
         }
     }

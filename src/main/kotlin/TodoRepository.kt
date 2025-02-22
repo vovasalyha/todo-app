@@ -2,8 +2,8 @@ import kotlinx.serialization.json.Json
 import java.io.File
 
 interface TodoRepository {
-    fun save(todos: List<Todo>)
-    fun load(): List<Todo>
+    suspend fun save(todos: List<Todo>)
+    suspend fun load(): List<Todo>
 }
 
 class TodoFileRepository(
@@ -23,7 +23,7 @@ class TodoFileRepository(
         }
     }
 
-    override fun save(todos: List<Todo>) {
+    override suspend fun save(todos: List<Todo>) {
         try {
             val jsonString = json.encodeToString(todos)
             stateFile.writeText(jsonString)
@@ -32,7 +32,7 @@ class TodoFileRepository(
         }
     }
 
-    override fun load(): List<Todo> {
+    override suspend fun load(): List<Todo> {
         return try {
             if (stateFile.exists()) {
                 val jsonString = stateFile.readText()

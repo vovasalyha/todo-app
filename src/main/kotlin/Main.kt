@@ -3,12 +3,13 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 @Preview
 fun App() {
     MaterialTheme {
-        TodoApp(TodoFileRepository())
+        TodoApp(viewModel { TodoAppViewModel(TodoFileRepository()) })
     }
 }
 
