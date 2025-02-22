@@ -2,7 +2,19 @@ import kotlinx.serialization.json.Json
 import java.io.File
 
 interface TodoRepository {
-    suspend fun save(todos: List<Todo>)
+    /**
+     * Flushes given snapshot of todos to a storage overwriting previous snapshot.
+     *
+     * @param todos New snapshot of todos to be flushed to the storage
+     */
+    suspend fun flush(todos: List<Todo>)
+
+    /**
+     * Loads all todos from a storage.
+     *
+     * @return List of all todos currently saved in the storage or an empty
+     * list if the storage is empty or doesn't exist and in case of any exception
+     */
     suspend fun load(): List<Todo>
 }
 
@@ -10,7 +22,7 @@ class TodoFileRepository(
     storageDir: File = File(System.getProperty("user.home"), ".todo-app"),
     filename: String = "todos.json"
 ) : TodoRepository {
-    private val stateFile = File(storageDir, filename)
+    private val file = File(storageDir, filename)
     private val json = Json {
         prettyPrint = true
         ignoreUnknownKeys = true
@@ -23,10 +35,10 @@ class TodoFileRepository(
         }
     }
 
-    override suspend fun save(todos: List<Todo>) {
+    override suspend fun flush(todos: List<Todo>) {
         try {
             val jsonString = json.encodeToString(todos)
-            stateFile.writeText(jsonString)
+            file.writeText(jsonString)
         } catch (e: Exception) {
             println("Failed to save app state: ${e.message}")
         }
@@ -34,15 +46,15 @@ class TodoFileRepository(
 
     override suspend fun load(): List<Todo> {
         return try {
-            if (stateFile.exists()) {
-                val jsonString = stateFile.readText()
-                json.decodeFromString(jsonString)
+            if (file.exists()) {
+                val jsonString = file.readText()
+                return json.decodeFromString(jsonString)
             } else {
-                listOf<Todo>()
+                return listOf<Todo>()
             }
         } catch (e: Exception) {
             println("Failed to load app state: ${e.message}")
-            listOf<Todo>()
+            return listOf<Todo>()
         }
     }
 }

@@ -45,9 +45,9 @@ class TodoAppViewModel(
         }
     }
 
-    private fun sync() {
+    private fun flush() {
         viewModelScope.launch {
-            todoRepository.save(todos)
+            todoRepository.flush(todos)
         }
     }
 
@@ -57,7 +57,7 @@ class TodoAppViewModel(
 
     fun addNewTodo(newTodo: Todo) {
         todos = todos + newTodo
-        sync()
+        flush()
     }
 
     fun toggleTodoCompleted(todoId: String) {
@@ -65,12 +65,12 @@ class TodoAppViewModel(
             if (todo.id == todoId) todo.copy(isCompleted = !todo.isCompleted)
             else todo
         }
-        sync()
+        flush()
     }
 
     fun deleteTodo(todoId: String) {
         todos = todos.filterNot { todo -> todo.id == todoId }
-        sync()
+        flush()
     }
 }
 
