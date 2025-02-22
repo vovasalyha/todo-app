@@ -31,9 +31,8 @@ data class Todo(
 fun TodoApp(todoRepository: TodoRepository) {
     var isLoading by remember { mutableStateOf(true) }
     var todos by remember { mutableStateOf(listOf<Todo>()) }
-    val addNewTodo: (Todo) -> Unit = { newTodo ->
-        todos = todos + newTodo
-    }
+
+    val addNewTodo: (Todo) -> Unit = { newTodo -> todos = todos + newTodo }
     val toggleTodoCompleted: (String) -> Unit = { todoId ->
         todos = todos.map { todo ->
             if (todo.id == todoId) todo.copy(isCompleted = !todo.isCompleted)
@@ -59,7 +58,7 @@ fun TodoApp(todoRepository: TodoRepository) {
         modifier = Modifier.fillMaxSize().padding(10.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        TodoInput(addNewTodo)
+        TodoInput(onNewTodoAdded = addNewTodo)
         TodoList(
             todos,
             onTodoCompletedToggled = toggleTodoCompleted,
