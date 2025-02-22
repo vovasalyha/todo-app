@@ -111,10 +111,11 @@ fun TodoInput(onNewTodoAdded: (newTodo: Todo) -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(5.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        TextField(
+        OutlinedTextField(
             value = todoText,
             onValueChange = { todoText = it },
             singleLine = true,
+            shape = MaterialTheme.shapes.medium,
             modifier = Modifier
                 .weight(1f)
                 .onKeyEvent {
@@ -128,6 +129,7 @@ fun TodoInput(onNewTodoAdded: (newTodo: Todo) -> Unit) {
         Button(
             onClick = addTodoAndClearInput,
             enabled = isValid,
+            shape = MaterialTheme.shapes.medium,
             modifier = Modifier.fillMaxHeight()
         ) { Text("Add item") }
     }
