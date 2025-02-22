@@ -1,22 +1,24 @@
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import components.BasicTooltip
+import components.ExpandableFloatingMenu
+import components.FloatingMenuItem
 import kotlinx.coroutines.launch
 
 class TodoAppViewModel(
@@ -78,21 +80,38 @@ class TodoAppViewModel(
 }
 
 @Composable
-fun TodoApp(vm: TodoAppViewModel) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+fun TodoApp(
+    vm: TodoAppViewModel,
+    genericMenuControls: List<FloatingMenuItem> = listOf<FloatingMenuItem>()
+) {
+    Scaffold(
+        floatingActionButton = {
+            ExpandableFloatingMenu(
+                leftMenuItems = listOf(
+                    FloatingMenuItem(
+                        icon = if (vm.isCompletedHidden) Icons.Default.VisibilityOff
+                        else Icons.Default.Visibility,
+                        tooltipText = if (vm.isCompletedHidden) "Show completed todos"
+                        else "Hide completed todos",
+                        onClick = vm::toggleCompletedHidden
+                    )
+                ),
+                rightMenuItems = genericMenuControls
+            )
+        },
+        floatingActionButtonPosition = FabPosition.Center
     ) {
-        TodoInput(onNewTodoAdded = vm::addNewTodo)
-        TodoControls(
-            isCompletedHidden = vm.isCompletedHidden,
-            onCompletedHiddenToggled = vm::toggleCompletedHidden
-        )
-        TodoList(
-            vm.todos(),
-            onTodoCompletedToggled = vm::toggleTodoCompleted,
-            onTodoDeleted = vm::deleteTodo
-        )
+        Column(
+            modifier = Modifier.fillMaxSize().padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            TodoInput(onNewTodoAdded = vm::addNewTodo)
+            TodoList(
+                vm.todos(),
+                onTodoCompletedToggled = vm::toggleTodoCompleted,
+                onTodoDeleted = vm::deleteTodo
+            )
+        }
     }
 }
 
@@ -102,13 +121,15 @@ fun TodoInput(onNewTodoAdded: (newTodo: Todo) -> Unit) {
     val isValid = todoText.trim().isNotEmpty()
 
     val addTodoAndClearInput = {
-        onNewTodoAdded(Todo(text = todoText))
-        todoText = ""
+        if (isValid) {
+            onNewTodoAdded(Todo(text = todoText))
+            todoText = ""
+        }
     }
 
     Row(
-        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
-        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        modifier = Modifier.height(IntrinsicSize.Min),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
@@ -136,41 +157,25 @@ fun TodoInput(onNewTodoAdded: (newTodo: Todo) -> Unit) {
 }
 
 @Composable
-fun TodoControls(
-    isCompletedHidden: Boolean,
-    onCompletedHiddenToggled: () -> Unit
-) {
-    Row(
-        horizontalArrangement = Arrangement.End,
-        modifier = Modifier.padding(start = 10.dp).height(30.dp)
-    ) {
-        BasicTooltip(
-            text = if (isCompletedHidden) "Show completed todos"
-            else "Hide completed todos"
-        ) {
-            IconButton(onClick = onCompletedHiddenToggled) {
-                if (isCompletedHidden) Icon(
-                    Icons.Default.VisibilityOff,
-                    contentDescription = "Toggle completed hidden"
-                )
-                else Icon(Icons.Default.Visibility, contentDescription = "Toggle completed hidden")
-            }
-        }
-    }
-}
-
-@Composable
 fun TodoList(
     todos: List<Todo>,
     onTodoCompletedToggled: (todoId: String) -> Unit,
     onTodoDeleted: (todoId: String) -> Unit
 ) {
-    LazyColumn(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(5.dp)
-    ) {
-        items(todos, key = Todo::id) { todo ->
-            TodoCard(todo, onTodoCompletedToggled, onTodoDeleted)
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (todos.isNotEmpty()) {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(todos, key = Todo::id) { todo ->
+                    TodoCard(todo, onTodoCompletedToggled, onTodoDeleted)
+                }
+            }
+        } else {
+            Text(
+                text = "No todos to display...",
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+            )
         }
     }
 }
@@ -181,21 +186,23 @@ fun TodoCard(
     onTodoCompletedToggled: (todoId: String) -> Unit,
     onTodoDeleted: (todoId: String) -> Unit
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Box(modifier = Modifier.padding(10.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(
-                    checked = todo.isCompleted,
-                    onCheckedChange = { onTodoCompletedToggled(todo.id) })
-                Text(
-                    text = todo.text,
-                    modifier = Modifier.weight(1f),
-                    textDecoration = if (todo.isCompleted) TextDecoration.LineThrough
-                    else TextDecoration.None
-                )
-                IconButton(onClick = { onTodoDeleted(todo.id) }) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete todo ${todo.text}")
-                }
+    Card {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(8.dp)
+        ) {
+            Checkbox(
+                checked = todo.isCompleted,
+                onCheckedChange = { onTodoCompletedToggled(todo.id) }
+            )
+            Text(
+                text = todo.text,
+                modifier = Modifier.weight(1f),
+                textDecoration = if (todo.isCompleted) TextDecoration.LineThrough
+                else TextDecoration.None
+            )
+            IconButton(onClick = { onTodoDeleted(todo.id) }) {
+                Icon(Icons.Default.Delete, contentDescription = "Delete todo ${todo.text}")
             }
         }
     }
