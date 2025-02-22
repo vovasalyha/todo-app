@@ -15,20 +15,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import kotlinx.serialization.Serializable
-import java.util.*
-
-@Serializable
-data class Todo(
-    val id: String = UUID.randomUUID().toString(),
-    val text: String,
-    val isCompleted: Boolean = false,
-    val createdAt: LocalDateTime = Clock.System.now().toLocalDateTime(TimeZone.UTC)
-)
 
 class TodoAppViewModel(
     private val todoRepository: TodoRepository
