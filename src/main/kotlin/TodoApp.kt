@@ -4,6 +4,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -14,12 +16,16 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import components.BasicTooltip
 import kotlinx.coroutines.launch
 
 class TodoAppViewModel(
     private val todoRepository: TodoRepository
 ) : ViewModel() {
     private var todos by mutableStateOf(listOf<Todo>())
+    var isCompletedHidden by mutableStateOf(false)
+        private set
+
 
     init {
         load()
@@ -37,7 +43,14 @@ class TodoAppViewModel(
         }
     }
 
+    /**
+     * Todos are returned in a reversed view to show
+     * the most recent todos first.
+     */
     fun todos(): List<Todo> {
+        if (isCompletedHidden) {
+            return todos.filterNot(Todo::isCompleted).asReversed()
+        }
         return todos.asReversed()
     }
 
@@ -58,6 +71,10 @@ class TodoAppViewModel(
         todos = todos.filterNot { todo -> todo.id == todoId }
         flush()
     }
+
+    fun toggleCompletedHidden() {
+        isCompletedHidden = !isCompletedHidden
+    }
 }
 
 @Composable
@@ -67,6 +84,10 @@ fun TodoApp(vm: TodoAppViewModel) {
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         TodoInput(onNewTodoAdded = vm::addNewTodo)
+        TodoControls(
+            isCompletedHidden = vm.isCompletedHidden,
+            onCompletedHiddenToggled = vm::toggleCompletedHidden
+        )
         TodoList(
             vm.todos(),
             onTodoCompletedToggled = vm::toggleTodoCompleted,
@@ -109,6 +130,30 @@ fun TodoInput(onNewTodoAdded: (newTodo: Todo) -> Unit) {
             enabled = isValid,
             modifier = Modifier.fillMaxHeight()
         ) { Text("Add item") }
+    }
+}
+
+@Composable
+fun TodoControls(
+    isCompletedHidden: Boolean,
+    onCompletedHiddenToggled: () -> Unit
+) {
+    Row(
+        horizontalArrangement = Arrangement.End,
+        modifier = Modifier.padding(start = 10.dp).height(30.dp)
+    ) {
+        BasicTooltip(
+            text = if (isCompletedHidden) "Show completed todos"
+            else "Hide completed todos"
+        ) {
+            IconButton(onClick = onCompletedHiddenToggled) {
+                if (isCompletedHidden) Icon(
+                    Icons.Default.VisibilityOff,
+                    contentDescription = "Toggle completed hidden"
+                )
+                else Icon(Icons.Default.Visibility, contentDescription = "Toggle completed hidden")
+            }
+        }
     }
 }
 

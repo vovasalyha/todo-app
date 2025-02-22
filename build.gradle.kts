@@ -26,6 +26,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
     implementation("org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.8.2")
     runtimeOnly("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.10.1")
+    implementation(compose.materialIconsExtended)
+    implementation("org.jetbrains.compose.material3:material3-desktop:1.7.3")
 }
 
 compose.desktop {
