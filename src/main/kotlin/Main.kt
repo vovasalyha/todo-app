@@ -8,7 +8,7 @@ import androidx.compose.ui.window.application
 @Preview
 fun App() {
     MaterialTheme {
-        TodoApp()
+        TodoApp(TodoFileRepository())
     }
 }
 

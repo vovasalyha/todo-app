@@ -12,28 +12,47 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import java.time.LocalDateTime
+import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlinx.serialization.Serializable
 import java.util.*
 
+@Serializable
 data class Todo(
-    val id: UUID = UUID.randomUUID(),
+    val id: String = UUID.randomUUID().toString(),
     val text: String,
     val isCompleted: Boolean = false,
-    val createdAt: LocalDateTime = LocalDateTime.now()
+    val createdAt: LocalDateTime = Clock.System.now().toLocalDateTime(TimeZone.UTC)
 )
 
 @Composable
-fun TodoApp() {
+fun TodoApp(todoRepository: TodoRepository) {
+    var isLoading by remember { mutableStateOf(true) }
     var todos by remember { mutableStateOf(listOf<Todo>()) }
-    val addNewTodo: (Todo) -> Unit = { newTodo -> todos = todos + newTodo }
-    val toggleTodoCompleted: (UUID) -> Unit = { todoId ->
+    val addNewTodo: (Todo) -> Unit = { newTodo ->
+        todos = todos + newTodo
+    }
+    val toggleTodoCompleted: (String) -> Unit = { todoId ->
         todos = todos.map { todo ->
             if (todo.id == todoId) todo.copy(isCompleted = !todo.isCompleted)
             else todo
         }
     }
-    val deleteTodo: (UUID) -> Unit = { todoId ->
+    val deleteTodo: (String) -> Unit = { todoId ->
         todos = todos.filterNot { todo -> todo.id == todoId }
+    }
+
+    LaunchedEffect(Unit) {
+        todos = todoRepository.load()
+        isLoading = false
+    }
+
+    LaunchedEffect(todos) {
+        if (!isLoading) {
+            todoRepository.save(todos)
+        }
     }
 
     Column(
@@ -89,8 +108,8 @@ fun TodoInput(onNewTodoAdded: (newTodo: Todo) -> Unit) {
 @Composable
 fun TodoList(
     todos: List<Todo>,
-    onTodoCompletedToggled: (todoId: UUID) -> Unit,
-    onTodoDeleted: (todoId: UUID) -> Unit
+    onTodoCompletedToggled: (todoId: String) -> Unit,
+    onTodoDeleted: (todoId: String) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
@@ -105,8 +124,8 @@ fun TodoList(
 @Composable
 fun TodoCard(
     todo: Todo,
-    onTodoCompletedToggled: (todoId: UUID) -> Unit,
-    onTodoDeleted: (todoId: UUID) -> Unit
+    onTodoCompletedToggled: (todoId: String) -> Unit,
+    onTodoDeleted: (todoId: String) -> Unit
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Box(modifier = Modifier.padding(10.dp)) {
