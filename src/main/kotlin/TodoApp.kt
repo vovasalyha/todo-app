@@ -1,7 +1,9 @@
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -17,6 +19,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import components.BasicTooltip
 import components.ExpandableFloatingMenu
 import components.FloatingMenuItem
 import kotlinx.coroutines.launch
@@ -149,12 +152,18 @@ fun TodoInput(onNewTodoAdded: (newTodo: Todo) -> Unit) {
                     false
                 }
         )
-        Button(
-            onClick = addTodoAndClearInput,
-            enabled = isValid,
-            shape = MaterialTheme.shapes.medium,
-            modifier = Modifier.fillMaxHeight()
-        ) { Text("Add item") }
+        BasicTooltip("Add to list") {
+            IconButton(
+                onClick = addTodoAndClearInput,
+                enabled = isValid,
+                modifier = Modifier.fillMaxHeight().padding(end = 8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AddCircle,
+                    contentDescription = "Add new todo to a list"
+                )
+            }
+        }
     }
 }
 
