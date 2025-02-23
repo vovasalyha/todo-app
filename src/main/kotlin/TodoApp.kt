@@ -22,12 +22,10 @@ import components.FloatingMenuItem
 import kotlinx.coroutines.launch
 
 class TodoAppViewModel(
-    private val todoRepository: TodoRepository
+    private val todoRepository: TodoRepository,
+    private val settings: Settings
 ) : ViewModel() {
     private var todos by mutableStateOf(listOf<Todo>())
-    var isCompletedHidden by mutableStateOf(false)
-        private set
-
 
     init {
         load()
@@ -35,7 +33,7 @@ class TodoAppViewModel(
 
     private fun load() {
         viewModelScope.launch {
-            todos = todoRepository.load()
+            todos = todoRepository.load() ?: listOf()
         }
     }
 
@@ -50,7 +48,7 @@ class TodoAppViewModel(
      * the most recent todos first.
      */
     fun todos(): List<Todo> {
-        if (isCompletedHidden) {
+        if (hideCompleted()) {
             return todos.filterNot(Todo::isCompleted).asReversed()
         }
         return todos.asReversed()
@@ -74,8 +72,12 @@ class TodoAppViewModel(
         flush()
     }
 
-    fun toggleCompletedHidden() {
-        isCompletedHidden = !isCompletedHidden
+    fun hideCompleted(): Boolean {
+        return settings.get("hideCompleted").toBoolean()
+    }
+
+    fun toggleHideCompleted() {
+        settings.set("hideCompleted", (!hideCompleted()).toString())
     }
 }
 
@@ -89,11 +91,11 @@ fun TodoApp(
             ExpandableFloatingMenu(
                 leftMenuItems = listOf(
                     FloatingMenuItem(
-                        icon = if (vm.isCompletedHidden) Icons.Default.VisibilityOff
+                        icon = if (vm.hideCompleted()) Icons.Default.VisibilityOff
                         else Icons.Default.Visibility,
-                        tooltipText = if (vm.isCompletedHidden) "Show completed todos"
+                        tooltipText = if (vm.hideCompleted()) "Show completed todos"
                         else "Hide completed todos",
-                        onClick = vm::toggleCompletedHidden
+                        onClick = vm::toggleHideCompleted
                     )
                 ),
                 rightMenuItems = genericMenuControls
