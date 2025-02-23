@@ -131,18 +131,27 @@ fun TodoInput(onNewTodoAdded: (newTodo: Todo) -> Unit) {
         }
     }
 
-    Row(
-        modifier = Modifier.height(IntrinsicSize.Min),
-        horizontalArrangement = Arrangement.spacedBy(LocalPadding.current.medium),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    Box {
         OutlinedTextField(
             value = todoText,
             onValueChange = { todoText = it },
             singleLine = true,
             shape = MaterialTheme.shapes.medium,
+            suffix = {
+                BasicTooltip("Add to list") {
+                    IconButton(
+                        onClick = addTodoAndClearInput,
+                        enabled = isValid
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AddCircle,
+                            contentDescription = "Add new todo to a list",
+                        )
+                    }
+                }
+            },
             modifier = Modifier
-                .weight(1f)
+                .fillMaxWidth()
                 .onKeyEvent {
                     if (it.key == Key.Enter) {
                         addTodoAndClearInput()
@@ -151,18 +160,6 @@ fun TodoInput(onNewTodoAdded: (newTodo: Todo) -> Unit) {
                     false
                 }
         )
-        BasicTooltip("Add to list") {
-            IconButton(
-                onClick = addTodoAndClearInput,
-                enabled = isValid,
-                modifier = Modifier.fillMaxHeight().padding(end = LocalPadding.current.medium)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.AddCircle,
-                    contentDescription = "Add new todo to a list"
-                )
-            }
-        }
     }
 }
 
