@@ -16,7 +16,6 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import components.BasicTooltip
@@ -107,8 +106,8 @@ fun TodoApp(
         floatingActionButtonPosition = FabPosition.Center
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.fillMaxSize().padding(LocalPadding.current.medium),
+            verticalArrangement = Arrangement.spacedBy(LocalPadding.current.medium)
         ) {
             TodoInput(onNewTodoAdded = vm::addNewTodo)
             TodoList(
@@ -134,7 +133,7 @@ fun TodoInput(onNewTodoAdded: (newTodo: Todo) -> Unit) {
 
     Row(
         modifier = Modifier.height(IntrinsicSize.Min),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(LocalPadding.current.medium),
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
@@ -156,7 +155,7 @@ fun TodoInput(onNewTodoAdded: (newTodo: Todo) -> Unit) {
             IconButton(
                 onClick = addTodoAndClearInput,
                 enabled = isValid,
-                modifier = Modifier.fillMaxHeight().padding(end = 8.dp)
+                modifier = Modifier.fillMaxHeight().padding(end = LocalPadding.current.medium)
             ) {
                 Icon(
                     imageVector = Icons.Default.AddCircle,
@@ -175,7 +174,7 @@ fun TodoList(
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         if (todos.isNotEmpty()) {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(LocalPadding.current.medium)) {
                 items(todos, key = Todo::id) { todo ->
                     TodoCard(todo, onTodoCompletedToggled, onTodoDeleted)
                 }
@@ -185,7 +184,7 @@ fun TodoList(
                 text = "No todos to display...",
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                modifier = Modifier.fillMaxWidth().padding(top = LocalPadding.current.medium)
             )
         }
     }
@@ -200,7 +199,7 @@ fun TodoCard(
     Card {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier.padding(LocalPadding.current.medium)
         ) {
             Checkbox(
                 checked = todo.isCompleted,

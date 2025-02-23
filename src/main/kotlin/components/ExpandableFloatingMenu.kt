@@ -1,5 +1,6 @@
 package components
 
+import LocalPadding
 import androidx.compose.animation.*
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -16,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
 
 data class FloatingMenuItem(
     val icon: ImageVector,
@@ -32,7 +32,7 @@ fun ExpandableFloatingMenu(
     var isExpanded by remember { mutableStateOf(false) }
 
     Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(LocalPadding.current.medium),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // Left side buttons

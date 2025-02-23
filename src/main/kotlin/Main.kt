@@ -7,10 +7,21 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.lifecycle.viewmodel.compose.viewModel
 import components.FloatingMenuItem
+
+data class Padding(
+    val small: Dp = 4.dp,
+    val medium: Dp = 8.dp,
+    val large: Dp = 16.dp,
+)
+
+val LocalPadding = compositionLocalOf { Padding() }
 
 @Composable
 @Preview
