@@ -45,7 +45,11 @@ fun ExpandableFloatingMenu(
         }
 
         // Center menu toggling button
-        MenuToggleButton(isExpanded) { isExpanded = !isExpanded }
+        MenuToggleButton(
+            icon = Icons.Default.Settings,
+            isExpanded = isExpanded,
+            onExpandedToggled = { isExpanded = !isExpanded }
+        )
 
         // Right side buttons
         AnimatedVisibility(
@@ -75,11 +79,12 @@ private fun FloatingMenuButton(item: FloatingMenuItem) {
 
 @Composable
 private fun MenuToggleButton(
+    icon: ImageVector,
     isExpanded: Boolean,
     onExpandedToggled: () -> Unit
 ) {
     BasicTooltip(
-        text = if (isExpanded) "Close settings" else "Open settings"
+        text = if (isExpanded) "Close menu" else "Open menu"
     ) {
         val rotation by animateFloatAsState(
             targetValue = if (isExpanded) 180f else 0f,
@@ -91,8 +96,8 @@ private fun MenuToggleButton(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         ) {
             Icon(
-                imageVector = Icons.Default.Settings,
-                contentDescription = "Settings",
+                imageVector = icon,
+                contentDescription = "Expandable menu",
                 modifier = Modifier.graphicsLayer(rotationZ = rotation)
             )
         }
